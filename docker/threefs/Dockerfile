@@ -1,4 +1,4 @@
-FROM reg.docker.alibaba-inc.com/aliyun-ais-server-vcns/golang:3fs-20250520-simple-test
+FROM vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/threefs:0530-base
 
 COPY ./docker/threefs/setup.sh /
 COPY ./docker/threefs/ibdev2netdev /usr/sbin/ibdev2netdev

@@ -1,4 +1,4 @@
-FROM vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns-test/3fs-base:wanna-test0520 AS builder
+FROM vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/threefs:0530 AS builder
 
 FROM vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/ubuntu:22.04
 
@@ -13,4 +13,4 @@ RUN apt install git -y && git clone https://github.com/libfuse/libfuse.git libfu
   cd ../.. && rm -rf libfuse
 
 RUN mkdir -p /opt/3fs/etc && mkdir -p /opt/3fs/bin
-COPY --from=builder /3FS/build/bin/* /opt/3fs/bin/
+COPY --from=builder /opt/3fs/bin/* /opt/3fs/bin/
