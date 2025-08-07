@@ -1,0 +1,36 @@
+imageInfo:
+  image: alibabacloudvcns/tfsc-operator:0728
+  tfsctImage: alibabacloudvcns/tfsct-operator:0728
+  imagePullPolicy: Always
+  mutatingObjectLabelKey: threefs.aliyun.com/sidecar
+  mutatingObjectLabelValue: threefs
+  webhookSecretName: threefs-webhook-secret
+  enableWebhook: true
+  webhookGenerateKeyImage: alibabacloudvcns/generate-keys:0728
+  mutatePath: /mutate--v1-pod
+  validatePath: /validate-threefs-aliyun-com-v1-threefscluster
+  validatePath2: /validate-threefs-aliyun-com-v1-threefschaintable
+  faultDurationTime: 5
+  useHostNetwork: true
+  enableTrace: false
+
+clickhouse:
+  image: alibabacloudvcns/clickhouse:25.1-jammy-20250411
+
+monitor:
+  image: alibabacloudvcns/alibabacloud-3fs:20250520
+
+mgmtd:
+  image: alibabacloudvcns/alibabacloud-3fs:20250520
+
+fdb:
+  image: alibabacloudvcns/fdb:0728
+
+meta:
+  image: alibabacloudvcns/alibabacloud-3fs:20250520
+
+storage:
+  image: alibabacloudvcns/alibabacloud-3fs:20250520
+
+fuse:
+  image: alibabacloudvcns/alibabacloud-3fs-fuse:0728

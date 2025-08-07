@@ -1,0 +1,23 @@
+FROM vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/golang:alpine AS builder
+
+WORKDIR /app
+
+COPY go.mod .
+COPY go.sum .
+RUN go env -w GOPROXY=https://goproxy.cn,direct
+RUN go mod download
+
+COPY . .
+RUN GOOS=linux GOARCH=amd64 go build -o cmd/threefs-chaintable-operator/tfsct-operator cmd/threefs-chaintable-operator/main.go
+
+
+FROM vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/threefs-operator-base:ubuntu22.04-cli-base
+
+RUN mkdir -p /opt/3fs/data_placement
+COPY --from=builder /app/cmd/threefs-chaintable-operator/tfsct-operator /
+COPY ./docker/operator/data_placement.py /opt/3fs/data_placement/data_placement.py
+COPY ./docker/operator/gen_chain_table.py /opt/3fs/data_placement/gen_chain_table.py
+
+RUN chmod +x /tfsct-operator
+
+ENTRYPOINT ["/tini","-s", "-g","--", "/tfsct-operator"]

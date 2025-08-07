@@ -1,0 +1,48 @@
+apiVersion: threefs.aliyun.com/v1
+kind: ThreeFsCluster
+metadata:
+  labels:
+    threefs.aliyun.com/debug-mod: "true"
+  name: tfsc-sample
+spec:
+  chainTableId: "1" # 此处当前固定设置
+  stripeSize: 16    # 按需调整
+  chunkSize: 1048576  # 按需调整
+  fdb:
+    configureNew: true
+    storageReplicas: 2 # 表示fdb数据库中数据的副本数，推荐设为2~3
+    clusterSize: 3 # 表示从fdb nodes中随机挑选对应数目的节点，组成fdb集群，遵循fdb官方推荐，强制约束clusterSize>=2*n-1，
+    port: 4500
+  clickhouse:
+    nodes: ["node1"]
+    db: "3fs"       # 此处当前固定设置
+    user: "default" # 此处当前固定设置
+    password: ""    # 此处当前固定设置
+    tcpPort: 8999
+  monitor:
+    port: 10000
+  mgmtd:
+    rdmaPort: 8000
+    tcpPort: 9000
+    replica: 2 # 表示从storage nodes中随机挑选对应数目的节点启动多实例mgmtd服务
+  meta:
+    rdmaPort: 8001
+    tcpPort: 9001
+    replica: 2 # 表示从storage nodes中随机挑选对应数目的节点启动多实例meta服务
+  storage:
+    rdmaPort: 8002
+    tcpPort: 9002
+    replica: 2 # 数据多副本
+    targetPaths:
+      - "/storage/data0/3fs"
+      - "/storage/data1/3fs"
+      - "/storage/data2/3fs"
+      - "/storage/data3/3fs"
+    targetPerDisk: 16
+    resources:
+      limits:
+        cpu: "4"
+        memory: 20Gi
+      requests:
+        cpu: "2"
+        memory: 10Gi

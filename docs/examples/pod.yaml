@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fuse-pod
+  labels:
+    threefs.aliyun.com/sidecar: "threefs"
+    threefs.aliyun.com/mountpath: "data"
+    threefs.aliyun.com/threefscluster: "tfsc-sample"
+    threefs.aliyun.com/threefscluster-ns: "default"
+    threefs.aliyun.com/shm-size: "10G"
+spec:
+  containers:
+    - name: main
+      image: vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/ubuntu:22.04
+      command:
+      - "/usr/bin/sleep"
+      - "36000000"

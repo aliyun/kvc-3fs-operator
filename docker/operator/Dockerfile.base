@@ -1,0 +1,24 @@
+FROM vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/ubuntu:22.04
+
+RUN mkdir -p /var/log/3fs && mkdir -p /opt/3fs/etc
+
+COPY docker/tini_v0.19.0 /tini
+COPY docker/operator/clickhouse* /
+COPY docker/operator/foundationdb-clients_7.3.63-1_amd64.deb /foundationdb-clients_7.3.63-1_amd64.deb
+COPY docker/operator/admin_cli /admin_cli
+COPY docker/operator/admin_cli.toml /opt/3fs/etc/admin_cli.toml
+COPY docker/operator/ibdev2netdev /usr/sbin/ibdev2netdev
+COPY ./docker/operator/requirements.txt /opt/3fs/etc/requirements.txt
+
+RUN apt update -y && apt install wget libatomic1 libboost-all-dev libdouble-conversion-dev libgflags-dev \
+    libgoogle-glog-dev libaio-dev libdwarf-dev libunwind-dev libgoogle-perftools-dev pip -y
+RUN apt update && apt install gnupg -y && \
+    wget -qO - https://mirrors.aliyun.com/erdma/GPGKEY | gpg --dearmour -o /etc/apt/trusted.gpg.d/erdma.gpg && \
+    echo "deb [ ] https://mirrors.aliyun.com/erdma/apt/ubuntu jammy/erdma main" | tee /etc/apt/sources.list.d/erdma.list && \
+    apt update && apt install libibverbs1 ibverbs-providers ibverbs-utils librdmacm1 -y  -y
+RUN dpkg -i clickhouse-common-static_25.1.5.31_amd64.deb && dpkg -i /clickhouse-client_25.1.5.31_amd64.deb
+RUN dpkg -i /foundationdb-clients_7.3.63-1_amd64.deb
+RUN chmod +x /tini
+RUN chmod +x /admin_cli
+RUN chmod +x /usr/sbin/ibdev2netdev
+RUN pip install -r /opt/3fs/etc/requirements.txt -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com

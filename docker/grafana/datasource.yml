@@ -1,0 +1,50 @@
+apiVersion: 1
+datasources:
+  - name: grafana-clickhouse-datasource
+    type: grafana-clickhouse-datasource
+    jsonData:
+      defaultDatabase: 3fs
+      port: ${PORT}
+      host: ${HOST}
+      username: ${USERNAME}
+      tlsSkipVerify: false
+      password: ${PASSWORD}
+      jsonData:
+        httpMethod: post
+        maxOpenConns: 10
+        maxIdleConns: 5
+        connMaxLifetime: 300
+      # tlsAuth: <bool>
+      # tlsAuthWithCACert: <bool>
+      # secure: <bool>
+      # dialTimeout: <seconds>
+      # queryTimeout: <seconds>
+      # protocol: <native|http>
+      # defaultTable: <string>
+      # httpHeaders:
+      # - name: X-Example-Header
+      #   secure: false
+      #   value: <string>
+      # - name: Authorization
+      #   secure: true
+      # logs:
+      #   defaultDatabase: <string>
+      #   defaultTable: <string>
+      #   otelEnabled: <bool>
+      #   otelVersion: <string>
+      #   timeColumn: <string>
+      #   ...Column: <string>
+      # traces:
+      #   defaultDatabase: <string>
+      #   defaultTable: <string>
+      #   otelEnabled: <bool>
+      #   otelVersion: <string>
+      #   durationUnit: <seconds|milliseconds|microseconds|nanoseconds>
+      #   traceIdColumn: <string>
+      #   ...Column: <string>
+    secureJsonData:
+      password: '${PASSWORD}'
+      # tlsCACert: <string>
+      # tlsClientCert: <string>
+      # tlsClientKey: <string>
+      # secureHttpHeaders.Authorization: <string>

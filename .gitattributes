@@ -1,0 +1,2 @@
+docker/operator/admin_cli filter=lfs diff=lfs merge=lfs -text
+docker/operator/clickhouse-common-static_25.1.5.31_amd64.deb filter=lfs diff=lfs merge=lfs -text

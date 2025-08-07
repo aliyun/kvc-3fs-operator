@@ -1,0 +1,16 @@
+FROM vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns-test/3fs-base:wanna-test0520 AS builder
+
+FROM vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/ubuntu:22.04
+
+RUN apt update && apt install -y libuv1-dev libjemalloc2 liblz4-dev liblzma-dev libdouble-conversion-dev libdwarf-dev libunwind-dev
+RUN apt install -y libaio-dev libgflags-dev libgoogle-glog-dev libgtest-dev libgmock-dev
+RUN apt install -y libgoogle-perftools-dev google-perftools libssl-dev libboost-all-dev meson
+COPY ./docker/operator/foundationdb-clients_7.3.63-1_amd64.deb /
+RUN dpkg -i /foundationdb-clients_7.3.63-1_amd64.deb  && \
+    rm -f /foundationdb-clients_7.3.63-1_amd64.deb
+RUN apt install git -y && git clone https://github.com/libfuse/libfuse.git libfuse -b fuse-3.16.2 --depth 1 && \
+ mkdir libfuse/build && cd libfuse/build && meson setup .. && ninja && ninja install && \
+  cd ../.. && rm -rf libfuse
+
+RUN mkdir -p /opt/3fs/etc && mkdir -p /opt/3fs/bin
+COPY --from=builder /3FS/build/bin/* /opt/3fs/bin/

@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+# Copyright (c) 2019 StackRox Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# generate-keys.sh
+#
+# Generate a (self-signed) CA certificate and a certificate and private key to be used by the webhook demo server.
+# The certificate will be issued for the Common Name (CN) of `webhook-server.webhook-demo.svc`, which is the
+# cluster-internal DNS name for the service.
+#
+# NOTE: THIS SCRIPT EXISTS FOR DEMO PURPOSES ONLY. DO NOT USE IT FOR YOUR PRODUCTION WORKLOADS.
+# Generate the CA cert and private key
+
+mkdir -p /tmp/dlf-keys
+
+openssl req -nodes -new -x509 -days 3650 -keyout /tmp/dlf-keys/ca.key -out /tmp/dlf-keys/ca.crt -subj "/CN=Admission Controller Webhook CA"
+# Generate the private key for the webhook server
+openssl genrsa -out /tmp/dlf-keys/webhook-server-tls.key 2048
+# Generate a Certificate Signing Request (CSR) for the private key, and sign it with the private key of the CA.
+cat >/tmp/dlf-keys/csr.conf <<EOF
+[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+req_extensions = req_ext
+distinguished_name = dn
+[dn]
+CN = threefs-admission-webhook.$THREE_FS_OPERATOR_NAMESPACE.svc
+[req_ext]
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = threefs-admission-webhook.$THREE_FS_OPERATOR_NAMESPACE.svc
+[v3_ext]
+authorityKeyIdentifier=keyid,issuer:always
+basicConstraints=CA:FALSE
+keyUsage=keyEncipherment,dataEncipherment
+extendedKeyUsage=serverAuth,clientAuth
+subjectAltName=@alt_names
+EOF
+openssl req -new -key /tmp/dlf-keys/webhook-server-tls.key -config /tmp/dlf-keys/csr.conf | openssl x509 -req -CA /tmp/dlf-keys/ca.crt -CAkey /tmp/dlf-keys/ca.key -set_serial 01 -days 3650 -extensions v3_ext -extfile /tmp/dlf-keys/csr.conf -out /tmp/dlf-keys/webhook-server-tls.crt
+rm /tmp/dlf-keys/csr.conf
+
+export CA_PEM_B64="$(openssl base64 -A < "/tmp/dlf-keys/ca.crt")"
+
+export $THREE_FS_OPERATOR_NAMESPACE="${THREE_FS_OPERATOR_NAMESPACE:-dlf}"
+export MUTATE_PATH="${MUTATE_PATH:-/mutate--v1-pod}"
+export VALIDATE_PATH="${VALIDATE_PATH:-/validate-threefs-aliyun-com-v1-threefscluster}"
+export VALIDATE_PATH2="${VALIDATE_PATH2:-/validate-threefs-aliyun-com-v1-threefschaintable}"
+
+kubectl -n $THREE_FS_OPERATOR_NAMESPACE create secret tls $WEBHOOK_SECRET_NAME \
+            --cert "/tmp/dlf-keys/webhook-server-tls.crt" \
+            --key "/tmp/dlf-keys/webhook-server-tls.key" --dry-run -o yaml | kubectl apply -f -
+kubectl -n $THREE_FS_OPERATOR_NAMESPACE label secret/$WEBHOOK_SECRET_NAME app.kubernetes.io/name=dlf
+envsubst < "mutate_webhook.yaml.template" | kubectl apply -n $THREE_FS_OPERATOR_NAMESPACE -f -
+envsubst < "validate_webhook.yaml.template" | kubectl apply -n $THREE_FS_OPERATOR_NAMESPACE -f -
+rm -rf /tmp/dlf-keys
+
+# wait for secret ready
+sleep 3s

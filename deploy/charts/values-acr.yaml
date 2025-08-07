@@ -1,0 +1,36 @@
+imageInfo:
+  image: vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/tfsc-operator:ci
+  tfsctImage: vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/tfsct-operator:ci
+  imagePullPolicy: Always
+  mutatingObjectLabelKey: threefs.aliyun.com/sidecar
+  mutatingObjectLabelValue: threefs
+  webhookSecretName: threefs-webhook-secret
+  enableWebhook: true
+  webhookGenerateKeyImage: vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/generate-keys:0725
+  mutatePath: /mutate--v1-pod
+  validatePath: /validate-threefs-aliyun-com-v1-threefscluster
+  validatePath2: /validate-threefs-aliyun-com-v1-threefschaintable
+  faultDurationTime: 5
+  useHostNetwork: true
+  enableTrace: false
+
+clickhouse:
+  image: vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/clickhouse:25.1-jammy-20250411
+
+monitor:
+  image: vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/3fs:20250520-test
+
+mgmtd:
+  image: vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/3fs:20250520-test
+
+fdb:
+  image: vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/fdb:20250504
+
+meta:
+  image: vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/3fs:20250520-test
+
+storage:
+  image: vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/3fs:20250520-test
+
+fuse:
+  image: vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/3fs:test0623-fuse

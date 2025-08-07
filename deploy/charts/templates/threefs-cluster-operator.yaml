@@ -1,0 +1,161 @@
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: tfsc-operator
+  namespace: {{.Release.Namespace}}
+  annotations:
+    "helm.sh/hook-weight": "-5"
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: tfsc-operator
+  template:
+    metadata:
+      labels:
+        app: tfsc-operator
+    spec:
+      {{- if .Values.imageInfo.useHostNetwork }}
+      hostNetwork: true
+      {{- end }}
+      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccountName: tfsc-operator-sa
+      nodeSelector:
+        kubernetes.io/os: linux
+      priorityClassName: system-cluster-critical
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      tolerations:
+        - key: "node-role.kubernetes.io/master"
+          operator: "Exists"
+          effect: "NoSchedule"
+        - key: "node-role.kubernetes.io/controlplane"
+          operator: "Exists"
+          effect: "NoSchedule"
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+      {{- if .Values.imageInfo.enableWebhook }}
+      initContainers:
+        - env:
+            - name: THREE_FS_OPERATOR_NAMESPACE
+              value: {{.Release.Namespace}}
+            - name: MUTATE_NS_LABEL_KEY
+              value: {{.Values.imageInfo.mutatingObjectLabelKey}}
+            - name: MUTATE_NS_LABEL_VALUE
+              value: "{{.Values.imageInfo.mutatingObjectLabelValue}}"
+            - name: WEBHOOK_SECRET_NAME
+              value: {{.Values.imageInfo.webhookSecretName}}
+            - name: MUTATE_PATH
+              value: {{.Values.imageInfo.mutatePath}}
+            - name: VALIDATE_PATH
+              value: {{.Values.imageInfo.validatePath}}
+            - name: VALIDATE_PATH2
+              value: {{.Values.imageInfo.validatePath2}}
+          image: {{ .Values.imageInfo.webhookGenerateKeyImage}}
+          imagePullPolicy: {{.Values.imageInfo.imagePullPolicy}}
+          name: generate-keys
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      {{- end }}
+      containers:
+        - name: tfsc-operator
+          image: {{.Values.imageInfo.image}}
+          imagePullPolicy: {{.Values.imageInfo.imagePullPolicy}}
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["SYS_ADMIN"]
+          env:
+            - name: NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: CLICKHOUSE_IMAGE
+              value: {{.Values.clickhouse.image}}
+            - name: MONITOR_IMAGE
+              value: {{.Values.monitor.image}}
+            - name: MGMTD_IMAGE
+              value: {{.Values.mgmtd.image}}
+            - name: META_IMAGE
+              value: {{.Values.meta.image}}
+            - name: STORAGE_IMAGE
+              value: {{.Values.storage.image}}
+            - name: FUSE_IMAGE
+              value: {{.Values.fuse.image}}
+            - name: FDB_IMAGE
+              value: {{.Values.fdb.image}}
+            - name: ENABLE_WEBHOOKS
+              value: "{{.Values.imageInfo.enableWebhook}}"
+            - name: USE_HOSTNETWORK
+              value: "{{.Values.imageInfo.useHostNetwork}}"
+            - name: FAULT_DURATION
+              value: "{{.Values.imageInfo.faultDurationTime}}"
+            - name: ENABLE_TRACE
+              value: "{{.Values.imageInfo.enableTrace}}"
+          volumeMounts:
+            - mountPath: /tmp/k8s-webhook-server/serving-certs
+              name: webhook-tls-certs
+              readOnly: true
+          ports:
+            - containerPort: 29443
+              name: webhook-api
+              protocol: TCP
+          resources:
+            limits:
+              {{- if eq .Values.imageInfo.useHostNetwork false }}
+              aliyun/erdma: "1"
+              {{- end }}
+              cpu: 2
+              memory: 500Mi
+            requests:
+              {{- if eq .Values.imageInfo.useHostNetwork false }}
+              aliyun/erdma: "1"
+              {{- end }}
+              cpu: 2
+              memory: 500Mi
+        - name: tfsct-operator
+          image: {{.Values.imageInfo.tfsctImage}}
+          imagePullPolicy: {{.Values.imageInfo.imagePullPolicy}}
+          securityContext:
+            privileged: true
+            capabilities:
+              add: [ "SYS_ADMIN" ]
+          env:
+            - name: NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: ENABLE_WEBHOOKS
+              value: "{{.Values.imageInfo.enableWebhook}}"
+          volumeMounts:
+            - mountPath: /tmp/k8s-webhook-server/serving-certs
+              name: webhook-tls-certs
+              readOnly: true
+          ports:
+            - containerPort: 29444
+              name: webhook-api2
+              protocol: TCP
+          resources:
+            limits:
+              {{- if eq .Values.imageInfo.useHostNetwork false }}
+              aliyun/erdma: "1"
+              {{- end }}
+              cpu: 2
+              memory: 500Mi
+            requests:
+              {{- if eq .Values.imageInfo.useHostNetwork false }}
+              aliyun/erdma: "1"
+              {{- end }}
+              cpu: 2
+              memory: 500Mi
+      volumes:
+        - name: webhook-tls-certs
+          secret:
+            defaultMode: 420
+            secretName: {{.Values.imageInfo.webhookSecretName}}

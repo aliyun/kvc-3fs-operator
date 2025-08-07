@@ -1,0 +1,26 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: threefs-mutating-webhook
+  labels:
+    name: threefs-mutating-webhook
+webhooks:
+- admissionReviewVersions:
+  - v1
+  name: mutator.threefscluster.threefs.aliyun.com
+  reinvocationPolicy: IfNeeded
+  clientConfig:
+    service:
+      name: threefs-admission-webhook
+      namespace: ${THREE_FS_OPERATOR_NAMESPACE}
+      path: ${MUTATE_PATH}
+    caBundle: ${CA_PEM_B64}
+  rules:
+  - operations: [ "CREATE" ]
+    apiGroups: [""]
+    apiVersions: ["v1"]
+    resources: ["pods"]
+  sideEffects: None
+  objectSelector:
+    matchLabels:
+      ${MUTATE_NS_LABEL_KEY}: "${MUTATE_NS_LABEL_VALUE}"

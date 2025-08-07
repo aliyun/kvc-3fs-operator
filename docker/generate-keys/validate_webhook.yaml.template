@@ -1,0 +1,59 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  labels:
+    name: threefs-validating-webhook
+  name: threefs-validation-webhook
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    caBundle: ${CA_PEM_B64}
+    service:
+      name: threefs-admission-webhook
+      namespace: ${THREE_FS_OPERATOR_NAMESPACE}
+      path: ${VALIDATE_PATH}
+      port: 443
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  sideEffects: None
+  name: validator.threefscluster.threefs.aliyun.com
+  rules:
+  - apiGroups:
+    - threefs.aliyun.com
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - threefsclusters
+    scope: '*'
+  timeoutSeconds: 30
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    caBundle: ${CA_PEM_B64}
+    service:
+      name: threefs-admission-webhook
+      namespace: ${THREE_FS_OPERATOR_NAMESPACE}
+      path: ${VALIDATE_PATH2}
+      port: 444
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  sideEffects: None
+  name: validator.threefschaintable.threefs.aliyun.com
+  rules:
+  - apiGroups:
+    - threefs.aliyun.com
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - threefschaintables
+    scope: '*'
+  timeoutSeconds: 30

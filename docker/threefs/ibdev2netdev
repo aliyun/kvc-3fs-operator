@@ -1,0 +1,6 @@
+#!/bin/bash
+for dir in /sys/class/infiniband/*; do
+        ibdev=`echo "$dir" | awk -F '/' '{print $NF}'`
+        netdev=`cat $dir/ports/1/gid_attrs/ndevs/1`
+        echo "'${ibdev}' port 1 ==> '${netdev}' (Up)"
+done

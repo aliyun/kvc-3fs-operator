@@ -1,0 +1,13 @@
+apiVersion: threefs.aliyun.com/v1
+kind: ThreeFsChainTable
+metadata:
+  labels:
+    threefs.aliyun.com/debug-mode: "true"
+  name: tfsct-sample
+spec:
+  threeFsClusterName: tfsc-sample  # 指定现存集群CRD name
+  threeFsClusterNamespace: default # 指定现存集群CRD namespace
+  type: "NodeReplace"
+  oldNode: ["xmh-orc"]  # 故障节点
+  newNode: ["magic02-k8s-s1"]  # 备用storage节点，可在crd status nodeinfo中查看是否存在
+  force: true

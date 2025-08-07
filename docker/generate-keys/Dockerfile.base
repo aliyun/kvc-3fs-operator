@@ -1,0 +1,17 @@
+FROM vcns-registry.cn-hangzhou.cr.aliyuncs.com/vcns/alpine:latest
+
+ENV BUILD_DEPS="gettext"  \
+    RUNTIME_DEPS="libintl"
+
+WORKDIR /tmp
+
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
+RUN apk update && \
+  apk add --update $RUNTIME_DEPS && \
+  apk add --virtual build_deps $BUILD_DEPS &&  \
+  cp /usr/bin/envsubst /usr/local/bin/envsubst && \
+  apk del build_deps && \
+  apk add --no-cache openssl curl bash && \
+  rm -rf /var/cache/apk/* && \
+  curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && \
+  chmod +x kubectl && mv kubectl /tmp/kubectl
