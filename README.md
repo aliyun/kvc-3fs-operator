@@ -210,5 +210,9 @@ docker build -f ./docker/generate-keys/Dockerfile.base -t {your_harbor}/generate
 docker build -f ./docker/generate-keys/Dockerfile -t {your_harbor}/generate-keys:0725 .
 ```
 
+# mini 3fs单机部署
+
+[mini 3fs ecs单机部署流程](./docs/MINI3FS_DEPLOYMENT.md)
+
 
 

@@ -209,3 +209,7 @@ docker build --no-cache -f ./docker/threefs/Dockerfile.chaintable -t {your_harbo
 docker build -f ./docker/generate-keys/Dockerfile.base -t {your_harbor}/generate-keys:base .
 docker build -f ./docker/generate-keys/Dockerfile -t {your_harbor}/generate-keys:0725 .
 ```
+
+# Mini 3FS Single-Node Deployment
+
+[Mini 3FS Single-Node Deployment on ECS](./docs/MINI3FS_DEPLOYMENT.md)
